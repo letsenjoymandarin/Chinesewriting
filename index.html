@@ -934,12 +934,12 @@
             <!-- Story Fields: Direct Upload Single 4-panel image -->
             <div class="field-group full-col" id="wrap-story-upload">
               <label class="field-label" id="ui-form-upload-label">看圖說故事題目圖片（一次上傳包含 4 格情節的完整大圖）</label>
-              <div style="border: 1px dashed var(--outline); border-radius: var(--rounded); padding: var(--space-md); background: var(--surface-paper); text-align: center; display: grid; gap: var(--space-xs); justify-items: center;">
+              <div style="border: 1px dashed var(--outline); border-radius: var(--rounded); padding: var(--space-md); background: var(--surface-paper); text-align: center; display: grid; gap: var(--space-xs); justify-items: center;" ondragover="event.preventDefault(); this.style.borderColor='var(--focus)';" ondragleave="this.style.borderColor='var(--outline)';" ondrop="event.preventDefault(); this.style.borderColor='var(--outline)'; handleStoryDrop(event);">
                 <div style="display:flex; flex-wrap:wrap; gap:var(--space-sm); align-items:center; justify-content:center;">
-                  <label class="btn btn-primary" style="margin:0; cursor:pointer;" id="ui-btn-choose-file">
-                    📁 選擇電腦圖片上傳 (JPG / PNG / WebP)
-                    <input type="file" id="edit-story-file" accept="image/*" class="hidden" onchange="handleStoryImageUpload(this)">
-                  </label>
+                  <button type="button" class="btn btn-primary" style="margin:0; cursor:pointer;" onclick="triggerStoryFileInput()">
+                    📁 <span id="ui-btn-choose-file">選擇電腦圖片上傳 (JPG / PNG / WebP)</span>
+                  </button>
+                  <input type="file" id="edit-story-file" accept="image/*" style="display:none;" onchange="handleStoryImageUpload(this)">
                   <button type="button" class="btn btn-sm btn-accent" id="btn-clear-story-img" onclick="clearStoryImage()" style="display:none;">✕ 移除圖片</button>
                 </div>
                 <div id="story-upload-filename" style="font-size:0.8125rem; color:var(--on-surface-variant); margin-top:4px;">
@@ -2946,7 +2946,27 @@ Shèqū jūmín Lín Fāng jìngshàng`
 
     function handleStoryImageUpload(input) {
       if (!input.files || !input.files[0]) return;
-      const file = input.files[0];
+      processImageFile(input.files[0]);
+    }
+    function triggerStoryFileInput() {
+      const fileInput = document.getElementById('edit-story-file');
+      if (fileInput) {
+        fileInput.value = ''; // reset so re-selecting same file triggers onchange
+        fileInput.click();
+      }
+    }
+
+    function handleStoryDrop(e) {
+      if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files[0]) return;
+      const file = e.dataTransfer.files[0];
+      if (!file.type.startsWith('image/')) {
+        alert('請上傳圖片檔案 (JPG / PNG / WebP)');
+        return;
+      }
+      processImageFile(file);
+    }
+
+    function processImageFile(file) {
       const filenameEl = document.getElementById('story-upload-filename');
       const previewBox = document.getElementById('story-img-preview-box');
       const previewImg = document.getElementById('story-img-preview');
@@ -2997,6 +3017,7 @@ Shèqū jūmín Lín Fāng jìngshàng`
       };
       reader.readAsDataURL(file);
     }
+
 
     function clearStoryImage() {
       const hiddenInput = document.getElementById('edit-composite-img');
