@@ -322,6 +322,44 @@
     }
 
     /* Official Story 4-Panel Grid (Strict: NO text hints under pictures) */
+    
+    .story-single-container {
+      display: block;
+      width: 100%;
+    }
+    .story-composite-card {
+      position: relative;
+      background: var(--surface-paper);
+      border: var(--rule-sumi);
+      border-radius: var(--rounded);
+      padding: var(--space-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-in;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .story-composite-card:hover {
+      border-color: var(--tertiary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .story-composite-img {
+      max-width: 100%;
+      height: auto;
+      max-height: 520px;
+      object-fit: contain;
+      display: block;
+      border-radius: var(--rounded);
+    }
+    .story-img-tip {
+      margin-top: var(--space-xs);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      font-family: var(--font-label);
+      letter-spacing: var(--label-tracking);
+    }
+
     .story-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -893,22 +931,28 @@
               <input type="text" id="edit-title" placeholder="例如：社區環保義工日" required>
             </div>
 
-            <!-- Story Fields -->
-            <div class="field-group" id="wrap-img-1">
-              <label class="field-label" for="edit-img-1" id="ui-form-img1">圖片 1 網址（留空使用預設插畫）</label>
-              <input type="text" id="edit-img-1" placeholder="選填圖片 URL">
-            </div>
-            <div class="field-group" id="wrap-img-2">
-              <label class="field-label" for="edit-img-2" id="ui-form-img2">圖片 2 網址（留空使用預設插畫）</label>
-              <input type="text" id="edit-img-2" placeholder="選填圖片 URL">
-            </div>
-            <div class="field-group" id="wrap-img-3">
-              <label class="field-label" for="edit-img-3" id="ui-form-img3">圖片 3 網址（留空使用預設插畫）</label>
-              <input type="text" id="edit-img-3" placeholder="選填圖片 URL">
-            </div>
-            <div class="field-group" id="wrap-img-4">
-              <label class="field-label" for="edit-img-4" id="ui-form-img4">圖片 4 網址（留空使用預設插畫）</label>
-              <input type="text" id="edit-img-4" placeholder="選填圖片 URL">
+            <!-- Story Fields: Direct Upload Single 4-panel image -->
+            <div class="field-group full-col" id="wrap-story-upload">
+              <label class="field-label" id="ui-form-upload-label">看圖說故事題目圖片（一次上傳包含 4 格情節的完整大圖）</label>
+              <div style="border: 1px dashed var(--outline); border-radius: var(--rounded); padding: var(--space-md); background: var(--surface-paper); text-align: center; display: grid; gap: var(--space-xs); justify-items: center;">
+                <div style="display:flex; flex-wrap:wrap; gap:var(--space-sm); align-items:center; justify-content:center;">
+                  <label class="btn btn-primary" style="margin:0; cursor:pointer;" id="ui-btn-choose-file">
+                    📁 選擇電腦圖片上傳 (JPG / PNG / WebP)
+                    <input type="file" id="edit-story-file" accept="image/*" class="hidden" onchange="handleStoryImageUpload(this)">
+                  </label>
+                  <button type="button" class="btn btn-sm btn-accent" id="btn-clear-story-img" onclick="clearStoryImage()" style="display:none;">✕ 移除圖片</button>
+                </div>
+                <div id="story-upload-filename" style="font-size:0.8125rem; color:var(--on-surface-variant); margin-top:4px;">
+                  未選擇檔案（留空將使用精美預設情境插圖）
+                </div>
+
+                <!-- Preview Box -->
+                <div id="story-img-preview-box" style="display:none; margin-top:var(--space-xs); max-width:520px; width:100%; border:var(--rule-sumi); border-radius:var(--rounded); overflow:hidden; background:var(--surface-container-low); padding:4px;">
+                  <img id="story-img-preview" src="" alt="預覽" style="width:100%; height:auto; display:block; border-radius:var(--rounded); object-fit:contain;">
+                  <div id="story-img-preview-info" style="font-size:0.75rem; color:var(--on-surface-variant); padding:4px 6px; text-align:right;"></div>
+                </div>
+              </div>
+              <input type="hidden" id="edit-composite-img">
             </div>
 
             <!-- Email Fields -->
@@ -2162,10 +2206,10 @@ Shèqū jūmín Lín Fāng jìngshàng`
       formType: '題型分類',
       formUnit: 'CED 主題單元',
       formTitle: '題目名稱',
-      formImg1: '圖片 1 網址（留空使用預設插畫）',
-      formImg2: '圖片 2 網址（留空使用預設插畫）',
-      formImg3: '圖片 3 網址（留空使用預設插畫）',
-      formImg4: '圖片 4 網址（留空使用預設插畫）',
+      formUploadLabel: '看圖說故事題目圖片（一次上傳包含 4 格情節的完整大圖）',
+      btnChooseFile: '📁 選擇電腦圖片上傳 (JPG / PNG / WebP)',
+      btnClearImg: '✕ 移除圖片',
+      noImgSelected: '未選擇檔案（留空將使用精美預設情境插圖）',
       formFrom: '模擬寄件人',
       formSubj: '信件主旨',
       formBody: '模擬來信內文（建議包含 2 個具體提問）',
@@ -2341,10 +2385,9 @@ Shèqū jūmín Lín Fāng jìngshàng`
         'ui-form-type': UI_STRINGS.formType,
         'ui-form-unit': UI_STRINGS.formUnit,
         'ui-form-title': UI_STRINGS.formTitle,
-        'ui-form-img1': UI_STRINGS.formImg1,
-        'ui-form-img2': UI_STRINGS.formImg2,
-        'ui-form-img3': UI_STRINGS.formImg3,
-        'ui-form-img4': UI_STRINGS.formImg4,
+        'ui-form-upload-label': UI_STRINGS.formUploadLabel,
+        'ui-btn-choose-file': UI_STRINGS.btnChooseFile,
+        'btn-clear-story-img': UI_STRINGS.btnClearImg,
         'ui-form-from': UI_STRINGS.formFrom,
         'ui-form-subj': UI_STRINGS.formSubj,
         'ui-form-body': UI_STRINGS.formBody,
@@ -2411,15 +2454,27 @@ Shèqū jūmín Lín Fāng jìngshàng`
       if (prompt.type === 'story') {
         if (storyEl) {
           storyEl.classList.remove('hidden');
-          let html = '';
-          for (let i = 0; i < 4; i++) {
-            const url = (prompt.images && prompt.images[i]) ? prompt.images[i].trim() : '';
-            const visual = url
-              ? `<img src="${url.replace(/"/g, '&quot;')}" alt="${i + 1}">`
-              : makeSceneSvg(prompt.theme || 'festival', i);
-            html += `<div class="story-frame"><span class="frame-num">${i + 1}</span>${visual}</div>`;
+          const composite = prompt.compositeImage || (prompt.images && prompt.images.length === 1 && prompt.images[0] ? prompt.images[0].trim() : '');
+          if (composite) {
+            storyEl.className = 'story-single-container';
+            storyEl.innerHTML = `
+              <div class="story-composite-card" onclick="openImageModal('${composite.replace(/"/g, '&quot;')}')" title="點擊放大圖片">
+                <img src="${composite.replace(/"/g, '&quot;')}" alt="${t(prompt.title)}" class="story-composite-img">
+                <div class="story-img-tip">🔍 點擊圖片可全螢幕放大查看四格細節</div>
+              </div>
+            `;
+          } else {
+            storyEl.className = 'story-grid';
+            let html = '';
+            for (let i = 0; i < 4; i++) {
+              const url = (prompt.images && prompt.images[i]) ? prompt.images[i].trim() : '';
+              const visual = url
+                ? `<img src="${url.replace(/"/g, '&quot;')}" alt="${i + 1}">`
+                : makeSceneSvg(prompt.theme || 'festival', i);
+              html += `<div class="story-frame"><span class="frame-num">${i + 1}</span>${visual}</div>`;
+            }
+            storyEl.innerHTML = html;
           }
-          storyEl.innerHTML = html;
         }
         if (emailEl) emailEl.classList.add('hidden');
       } else {
@@ -2867,7 +2922,7 @@ Shèqū jūmín Lín Fāng jìngshàng`
       if (!tbody) return;
       tbody.innerHTML = appState.prompts.map(p => `
         <tr>
-          <td><span class="meta-tag">${p.type === 'story' ? t('看圖說故事') : t('電子信件')}</span></td>
+          <td><span class="meta-tag">${p.type === 'story' ? t('看圖說故事') : t('電子信件')}</span> ${p.compositeImage ? '📷' : ''}</td>
           <td><strong>${t(p.title)}</strong></td>
           <td>${p.unit || ''}</td>
           <td style="display:flex; gap:0.35rem; flex-wrap:wrap;">
@@ -2881,14 +2936,88 @@ Shèqū jūmín Lín Fāng jìngshàng`
     function toggleAdminFormFields() {
       const type = document.getElementById('edit-type').value;
       const isStory = type === 'story';
-      ['wrap-img-1', 'wrap-img-2', 'wrap-img-3', 'wrap-img-4'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.toggle('hidden', !isStory);
-      });
+      const storyWrap = document.getElementById('wrap-story-upload');
+      if (storyWrap) storyWrap.classList.toggle('hidden', !isStory);
       ['wrap-email-from', 'wrap-email-subj', 'wrap-email-body'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.toggle('hidden', isStory);
       });
+    }
+
+    function handleStoryImageUpload(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      const filenameEl = document.getElementById('story-upload-filename');
+      const previewBox = document.getElementById('story-img-preview-box');
+      const previewImg = document.getElementById('story-img-preview');
+      const previewInfo = document.getElementById('story-img-preview-info');
+      const hiddenInput = document.getElementById('edit-composite-img');
+      const clearBtn = document.getElementById('btn-clear-story-img');
+
+      if (filenameEl) filenameEl.textContent = '正在優化並讀取圖片...';
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const rawData = e.target.result;
+        const img = new Image();
+        img.onload = function() {
+          const maxDim = 1600;
+          let w = img.width;
+          let h = img.height;
+          let targetData = rawData;
+          if (w > maxDim || h > maxDim || file.size > 800 * 1024) {
+            const scale = Math.min(1, maxDim / Math.max(w, h));
+            const nw = Math.round(w * scale);
+            const nh = Math.round(h * scale);
+            const canvas = document.createElement('canvas');
+            canvas.width = nw;
+            canvas.height = nh;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, nw, nh);
+            targetData = canvas.toDataURL('image/jpeg', 0.88);
+            w = nw;
+            h = nh;
+          }
+          if (hiddenInput) hiddenInput.value = targetData;
+          if (previewImg) previewImg.src = targetData;
+          if (previewBox) previewBox.style.display = 'block';
+          if (clearBtn) clearBtn.style.display = 'inline-block';
+          const approxKb = Math.round(targetData.length * 0.75 / 1024);
+          if (filenameEl) filenameEl.textContent = `已載入圖片: ${file.name}`;
+          if (previewInfo) previewInfo.textContent = `解析度: ${w}×${h}px | 儲存大小: 約 ${approxKb}KB`;
+        };
+        img.onerror = function() {
+          if (hiddenInput) hiddenInput.value = rawData;
+          if (previewImg) previewImg.src = rawData;
+          if (previewBox) previewBox.style.display = 'block';
+          if (clearBtn) clearBtn.style.display = 'inline-block';
+          if (filenameEl) filenameEl.textContent = `已載入: ${file.name}`;
+        };
+        img.src = rawData;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearStoryImage() {
+      const hiddenInput = document.getElementById('edit-composite-img');
+      const fileInput = document.getElementById('edit-story-file');
+      const filenameEl = document.getElementById('story-upload-filename');
+      const previewBox = document.getElementById('story-img-preview-box');
+      const previewImg = document.getElementById('story-img-preview');
+      const clearBtn = document.getElementById('btn-clear-story-img');
+
+      if (hiddenInput) hiddenInput.value = '';
+      if (fileInput) fileInput.value = '';
+      if (filenameEl) filenameEl.textContent = '未選擇檔案（留空將使用精美預設情境插圖）';
+      if (previewBox) previewBox.style.display = 'none';
+      if (previewImg) previewImg.src = '';
+      if (clearBtn) clearBtn.style.display = 'none';
+    }
+
+    function openImageModal(src) {
+      const modalImg = document.getElementById('zoom-modal-img');
+      if (modalImg) modalImg.src = src;
+      openModal('image-modal');
     }
 
     function startNewPrompt() {
@@ -2896,10 +3025,7 @@ Shèqū jūmín Lín Fāng jìngshàng`
       document.getElementById('edit-type').value = 'story';
       document.getElementById('edit-unit').value = 'Unit 5: Contemporary Life';
       document.getElementById('edit-title').value = '';
-      document.getElementById('edit-img-1').value = '';
-      document.getElementById('edit-img-2').value = '';
-      document.getElementById('edit-img-3').value = '';
-      document.getElementById('edit-img-4').value = '';
+      clearStoryImage();
       document.getElementById('edit-from').value = '';
       document.getElementById('edit-subj').value = '';
       document.getElementById('edit-body').value = '';
@@ -2916,10 +3042,23 @@ Shèqū jūmín Lín Fāng jìngshàng`
       document.getElementById('edit-type').value = p.type;
       document.getElementById('edit-unit').value = p.unit || '';
       document.getElementById('edit-title').value = p.title || '';
-      document.getElementById('edit-img-1').value = (p.images && p.images[0]) || '';
-      document.getElementById('edit-img-2').value = (p.images && p.images[1]) || '';
-      document.getElementById('edit-img-3').value = (p.images && p.images[2]) || '';
-      document.getElementById('edit-img-4').value = (p.images && p.images[3]) || '';
+      
+      const composite = p.compositeImage || (p.images && p.images[0] && (p.images[0].startsWith('data:') || p.images[0].startsWith('http')) ? p.images[0] : '');
+      const hiddenInput = document.getElementById('edit-composite-img');
+      if (hiddenInput) hiddenInput.value = composite;
+      if (composite) {
+        const fnEl = document.getElementById('story-upload-filename');
+        if (fnEl) fnEl.textContent = '已設定圖片（可直接選擇新檔案替換）';
+        const pvImg = document.getElementById('story-img-preview');
+        if (pvImg) pvImg.src = composite;
+        const pvBox = document.getElementById('story-img-preview-box');
+        if (pvBox) pvBox.style.display = 'block';
+        const clBtn = document.getElementById('btn-clear-story-img');
+        if (clBtn) clBtn.style.display = 'inline-block';
+      } else {
+        clearStoryImage();
+      }
+
       document.getElementById('edit-from').value = p.from || '';
       document.getElementById('edit-subj').value = p.subject || '';
       document.getElementById('edit-body').value = p.body || '';
@@ -2958,18 +3097,15 @@ Shèqū jūmín Lín Fāng jìngshàng`
       e.preventDefault();
       const existingId = document.getElementById('edit-id').value.trim();
       const type = document.getElementById('edit-type').value;
+      const compositeImg = (document.getElementById('edit-composite-img') ? document.getElementById('edit-composite-img').value.trim() : '');
       const item = {
         id: existingId || `${type}-${Date.now()}`,
         type,
         unit: document.getElementById('edit-unit').value.trim() || 'AP Chinese',
         title: document.getElementById('edit-title').value.trim(),
         theme: 'festival',
-        images: [
-          document.getElementById('edit-img-1').value.trim(),
-          document.getElementById('edit-img-2').value.trim(),
-          document.getElementById('edit-img-3').value.trim(),
-          document.getElementById('edit-img-4').value.trim()
-        ],
+        compositeImage: compositeImg,
+        images: compositeImg ? [compositeImg] : [],
         from: document.getElementById('edit-from').value.trim(),
         subject: document.getElementById('edit-subj').value.trim(),
         body: document.getElementById('edit-body').value.trim(),
@@ -3112,5 +3248,17 @@ Shèqū jūmín Lín Fāng jìngshàng`
 
     document.addEventListener('DOMContentLoaded', initApp);
   </script>
+
+  <!-- Image Zoom / Fullscreen Modal -->
+  <div class="modal-backdrop" id="image-modal" onclick="closeModal('image-modal')">
+    <div class="modal-card" style="max-width: 95vw; max-height: 95vh; padding: var(--space-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: auto; background: var(--surface-paper);" onclick="event.stopPropagation()">
+      <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom: var(--space-xs); border-bottom: var(--rule-linen); padding-bottom: 4px;">
+        <span style="font-size: var(--label-size); font-weight: 600; color: var(--on-surface-variant);">🔍 看圖說故事四格原圖檢視（點擊外部或右上角關閉）</span>
+        <button type="button" class="btn btn-sm" onclick="closeModal('image-modal')">關閉 ✕</button>
+      </div>
+      <img id="zoom-modal-img" src="" alt="四格故事放大檢視" style="max-width: 100%; max-height: 82vh; object-fit: contain; border-radius: var(--rounded); box-shadow: 0 4px 16px rgba(0,0,0,0.1);">
+    </div>
+  </div>
+
 </body>
 </html>
